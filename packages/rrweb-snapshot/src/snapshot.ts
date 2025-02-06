@@ -16,6 +16,7 @@ import type {
   attributes,
   mediaAttributes,
   DataURLOptions,
+  BlockElementFn,
 } from '@rrweb/types';
 import {
   Mirror,
@@ -219,8 +220,12 @@ export function _isBlockedElement(
   element: HTMLElement,
   blockClass: string | RegExp,
   blockSelector: string | null,
+  blockElementFn: BlockElementFn | null,
 ): boolean {
   try {
+    if (blockElementFn) {
+      return blockElementFn(element);
+    }
     if (typeof blockClass === 'string') {
       if (element.classList.contains(blockClass)) {
         return true;
@@ -392,6 +397,7 @@ function serializeNode(
     doc: Document;
     mirror: Mirror;
     blockClass: string | RegExp;
+    blockElementFn: BlockElementFn | null;
     blockSelector: string | null;
     needsMask: boolean;
     inlineStylesheet: boolean;
@@ -413,6 +419,7 @@ function serializeNode(
     doc,
     mirror,
     blockClass,
+    blockElementFn,
     blockSelector,
     needsMask,
     inlineStylesheet,
@@ -454,6 +461,7 @@ function serializeNode(
       return serializeElementNode(n as HTMLElement, {
         doc,
         blockClass,
+        blockElementFn,
         blockSelector,
         inlineStylesheet,
         maskInputOptions,
@@ -544,6 +552,7 @@ function serializeElementNode(
   options: {
     doc: Document;
     blockClass: string | RegExp;
+    blockElementFn: BlockElementFn | null;
     blockSelector: string | null;
     inlineStylesheet: boolean;
     maskInputOptions: MaskInputOptions;
@@ -562,6 +571,7 @@ function serializeElementNode(
   const {
     doc,
     blockClass,
+    blockElementFn,
     blockSelector,
     inlineStylesheet,
     maskInputOptions = {},
@@ -573,7 +583,12 @@ function serializeElementNode(
     newlyAddedElement = false,
     rootId,
   } = options;
-  const needBlock = _isBlockedElement(n, blockClass, blockSelector);
+  const needBlock = _isBlockedElement(
+    n,
+    blockClass,
+    blockSelector,
+    blockElementFn,
+  );
   const tagName = getValidTagName(n);
   let attributes: attributes = {};
   const len = n.attributes.length;
@@ -903,6 +918,7 @@ export function serializeNodeWithId(
     doc: Document;
     mirror: Mirror;
     blockClass: string | RegExp;
+    blockElementFn: BlockElementFn | null;
     blockSelector: string | null;
     maskTextClass: string | RegExp;
     maskTextSelector: string | null;
@@ -937,6 +953,7 @@ export function serializeNodeWithId(
     doc,
     mirror,
     blockClass,
+    blockElementFn,
     blockSelector,
     maskTextClass,
     maskTextSelector,
@@ -976,6 +993,7 @@ export function serializeNodeWithId(
     doc,
     mirror,
     blockClass,
+    blockElementFn,
     blockSelector,
     needsMask,
     inlineStylesheet,
@@ -1047,6 +1065,7 @@ export function serializeNodeWithId(
       doc,
       mirror,
       blockClass,
+      blockElementFn,
       blockSelector,
       needsMask,
       maskTextClass,
@@ -1123,6 +1142,7 @@ export function serializeNodeWithId(
             doc: iframeDoc,
             mirror,
             blockClass,
+            blockElementFn,
             blockSelector,
             needsMask,
             maskTextClass,
@@ -1175,6 +1195,7 @@ export function serializeNodeWithId(
             doc,
             mirror,
             blockClass,
+            blockElementFn,
             blockSelector,
             needsMask,
             maskTextClass,
@@ -1217,6 +1238,7 @@ function snapshot(
   options?: {
     mirror?: Mirror;
     blockClass?: string | RegExp;
+    blockElementFn?: BlockElementFn | null;
     blockSelector?: string | null;
     maskTextClass?: string | RegExp;
     maskTextSelector?: string | null;
@@ -1246,6 +1268,7 @@ function snapshot(
   const {
     mirror = new Mirror(),
     blockClass = 'rr-block',
+    blockElementFn = null,
     blockSelector = null,
     maskTextClass = 'rr-mask',
     maskTextSelector = null,
@@ -1312,6 +1335,7 @@ function snapshot(
     doc: n,
     mirror,
     blockClass,
+    blockElementFn,
     blockSelector,
     maskTextClass,
     maskTextSelector,
