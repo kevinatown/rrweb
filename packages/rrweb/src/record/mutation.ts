@@ -261,7 +261,7 @@ export default class MutationBuffer {
     setTimeout(() => {
       mutations.forEach(this.processMutation); // adds mutations to the buffer
       this.emit(); // clears buffer if not locked/frozen
-    }, 0)
+    }, 0);
   };
 
   public emit = () => {
