@@ -193,6 +193,11 @@ export default class MutationBuffer {
   private canvasManager: observerParam['canvasManager'];
   private processedNodeManager: observerParam['processedNodeManager'];
   private unattachedDoc: HTMLDocument;
+  private mutationThrottler: () => void;
+
+  constructor() {
+    this.mutationThrottler = requestIdleCallback ?? setTimeout;
+  }
 
   public init(options: MutationBufferParam) {
     (
@@ -258,7 +263,7 @@ export default class MutationBuffer {
 
   public processMutations = (mutations: mutationRecord[]) => {
     if (mutations.length < 10_000) {
-      window.requestIdleCallback(() => {
+      this.mutationThrottler(() => {
         mutations.forEach(this.processMutation); // adds mutations to the buffer
       });
     } else {
