@@ -258,7 +258,7 @@ export default class MutationBuffer {
 
   public processMutations = (mutations: mutationRecord[]) => {
     if (mutations.length < 10_000) {
-      window.requestIdleCallback(() => {
+      window.setTimeout(() => {
         mutations.forEach(this.processMutation); // adds mutations to the buffer
       });
     } else {
@@ -266,7 +266,7 @@ export default class MutationBuffer {
       while (mutations.length) {
         console.log('mutations.length', mutations.length);
         const batch = mutations.splice(0, 10_000);
-        window.requestIdleCallback(() => {
+        window.setTimeout(() => {
           console.log('idle callback');
           batch.forEach(this.processMutation);
         });
@@ -274,7 +274,7 @@ export default class MutationBuffer {
       console.log('done batching');
     }
 
-    window.requestIdleCallback(() => {
+    window.setTimeout(() => {
       this.emit(); // clears buffer if not locked/frozen
     });
   };
