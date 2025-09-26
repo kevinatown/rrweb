@@ -201,9 +201,12 @@ function record<T = eventWithTime>(
     }
     return e as unknown as T;
   };
-  wrappedEmit = (r: eventWithoutTime, isCheckout?: boolean) => {
+  wrappedEmit = (
+    r: eventWithoutTime & { timestamp?: number },
+    isCheckout?: boolean,
+  ) => {
     const e = r as eventWithTime;
-    e.timestamp = nowTimestamp();
+    e.timestamp = e.timestamp ?? nowTimestamp();
     if (
       mutationBuffers[0]?.isFrozen() &&
       e.type !== EventType.FullSnapshot &&
@@ -354,6 +357,7 @@ function record<T = eventWithTime>(
   });
 
   takeFullSnapshot = (isCheckout = false) => {
+    console.log('takeFullSnapshot', isCheckout);
     if (!recordDOM) {
       return;
     }
@@ -568,6 +572,8 @@ function record<T = eventWithTime>(
                     },
                   }),
               })) || [],
+          // @ts-expect-error - not now
+          takeFullSnapshot,
         },
         hooks,
       );
@@ -669,6 +675,16 @@ record.takeFullSnapshot = (isCheckout?: boolean) => {
   }
   takeFullSnapshot(isCheckout);
 };
+
+// record.areBuffersEmpty = () => {
+//   return mutationBuffers.some((buf) => buf.isQueueEmpty);
+// };
+
+// record.hasPendingMutationsBeforeTs = (timestamp: number) => {
+//   return mutationBuffers.some((buf) =>
+//     buf.hasQueuedMutationBeforeTs(timestamp),
+//   );
+// };
 
 record.mirror = mirror;
 

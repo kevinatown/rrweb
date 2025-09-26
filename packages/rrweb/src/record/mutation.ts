@@ -193,6 +193,7 @@ export default class MutationBuffer {
   private canvasManager: observerParam['canvasManager'];
   private processedNodeManager: observerParam['processedNodeManager'];
   private unattachedDoc: HTMLDocument;
+  private takeFullSnapshot: (isCheckout?: boolean) => void;
 
   public init(options: MutationBufferParam) {
     (
@@ -218,9 +219,11 @@ export default class MutationBuffer {
         'shadowDomManager',
         'canvasManager',
         'processedNodeManager',
+        'takeFullSnapshot',
       ] as const
     ).forEach((key) => {
       // just a type trick, the runtime result is correct
+      // @ts-expect-error - not now
       this[key] = options[key] as never;
     });
   }
@@ -257,8 +260,13 @@ export default class MutationBuffer {
   }
 
   public processMutations = (mutations: mutationRecord[]) => {
-    mutations.forEach(this.processMutation); // adds mutations to the buffer
+    if (mutations.length < 10_000) {
+      mutations.forEach(this.processMutation); // adds mutations to the buffer
+    }
     this.emit(); // clears buffer if not locked/frozen
+    if (mutations.length >= 10_000) {
+      this.takeFullSnapshot(true);
+    }
   };
 
   public emit = () => {
