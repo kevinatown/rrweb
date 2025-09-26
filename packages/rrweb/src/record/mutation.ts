@@ -262,9 +262,9 @@ export default class MutationBuffer {
   public processMutations = (mutations: mutationRecord[]) => {
     if (mutations.length < 10_000) {
       mutations.forEach(this.processMutation); // adds mutations to the buffer
-    }
-    this.emit(); // clears buffer if not locked/frozen
-    if (mutations.length >= 10_000) {
+      this.emit(); // clears buffer if not locked/frozen
+    } else {
+      this.emit(); // clears buffer if not locked/frozen
       this.takeFullSnapshot(true);
     }
   };
